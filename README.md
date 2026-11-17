@@ -38,9 +38,14 @@ As faixas de largura usam como referência a ABNT NBR 9050:2020: 120 cm é a fai
 - Fonte Atkinson Hyperlegible Next, criada para pessoas com baixa visão.
 - A página não pede nome, foto nem localização do celular.
 
-## Situação atual
+## Para onde vão os dados
 
-As avaliações enviadas ficam guardadas no navegador do aparelho. O envio para a planilha compartilhada (Google Apps Script + Google Sheets) é a próxima etapa.
+Cada avaliação enviada vira uma linha numa planilha do Google Sheets da equipe. O código que recebe os dados está em [`apps-script/Codigo.gs`](apps-script/Codigo.gs) e roda no Google Apps Script. Ele:
+
+- recalcula a pontuação no servidor, com a mesma regra da ficha, para que ninguém grave uma prioridade diferente da regra;
+- valida as respostas e limita o tamanho dos textos;
+- impede que um texto digitado vire fórmula na planilha;
+- mantém uma aba "Resumo" com a contagem de trechos por prioridade e de problemas graves por critério.
 
 ## Aviso
 

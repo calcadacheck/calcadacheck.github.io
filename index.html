@@ -730,15 +730,30 @@ function calcularPrioridade(resp) {
       respostas: resp, total: r.total, alerta: r.alerta, prioridade: r.prioridade, enviadoEm: new Date().toISOString()
     };
   }
-  /* Etapa atual: guarda o envio neste aparelho. Próxima etapa: enviar para a planilha (Google Apps Script). */
+  /* Endereço do App da Web do Google Apps Script (termina em /exec). Vazio = guarda só no aparelho. */
+  var URL_PLANILHA = "https://script.google.com/macros/s/AKfycbxYDvz2bmSAlVg-X6WweRZcuXkeyn0_PpH2K0eHi7m7jnm94r4BrWBewkYKqx_sjBgRvw/exec";
+
+  function guardarNoAparelho(dados) {
+    try {
+      var k = "calcadacheck:envios", lista = JSON.parse(localStorage.getItem(k) || "[]");
+      lista.push(dados); localStorage.setItem(k, JSON.stringify(lista));
+    } catch (e) { /* armazenamento indisponível */ }
+  }
   function enviarParaPlanilha(dados) {
-    return new Promise(function (ok) {
-      try {
-        var k = "calcadacheck:envios", lista = JSON.parse(localStorage.getItem(k) || "[]");
-        lista.push(dados); localStorage.setItem(k, JSON.stringify(lista));
-      } catch (e) { /* armazenamento indisponível */ }
-      setTimeout(ok, 600);
-    });
+    if (!URL_PLANILHA) {
+      guardarNoAparelho(dados);
+      return new Promise(function (ok) { setTimeout(ok, 600); });
+    }
+    var ctrl = typeof AbortController === "function" ? new AbortController() : null;
+    var limite = ctrl ? setTimeout(function () { ctrl.abort(); }, 20000) : null;
+    // Corpo em texto simples: o Apps Script aceita sem a checagem prévia de CORS.
+    return fetch(URL_PLANILHA, { method: "POST", body: JSON.stringify(dados), signal: ctrl ? ctrl.signal : undefined })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j || !j.ok) throw new Error((j && j.erro) || "Falha no envio");
+        guardarNoAparelho(dados);
+      })
+      .finally(function () { if (limite) clearTimeout(limite); });
   }
   function enviar() {
     var bt = $("#avancar"), dados = coletar();
@@ -752,7 +767,10 @@ function calcularPrioridade(resp) {
       enviado = true;
       ir("enviado", true);
     }, function () {
+      bt.textContent = "Enviar avaliação";
       mostrarErro("resultado", "Não foi possível enviar agora. Verifique a internet e tente de novo.");
+      var msg = $(".msg-erro", tela("resultado"));
+      if (msg) msg.scrollIntoView({ block: "center" });
     }).then(function () { bt.removeAttribute("aria-busy"); });
   }
   function limpar() {
