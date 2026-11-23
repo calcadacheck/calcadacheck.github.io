@@ -2,7 +2,7 @@
 
 Página web do **CalçadaCheck**, um kit de baixo custo para fazer a triagem preliminar da acessibilidade de calçadas no Gama (DF).
 
-**Acesse:** https://lucas-limas.github.io/calcadacheck/
+**Acesse:** https://calcadacheck.github.io/
 
 ## Como funciona
 
